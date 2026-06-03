@@ -11,6 +11,7 @@ import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -28,12 +29,14 @@ public class ParkingHistoryController {
     private final ParkingHistoryService parkingHistoryService;
 
     @Operation(summary = "Get all parking history records")
+    @PreAuthorize("hasAnyRole('ADMIN', 'ATTENDANT')")
     @GetMapping
     public ResponseEntity<List<ParkingHistoryResponse>> getAllHistory() {
         return ResponseEntity.ok(parkingHistoryService.getAllHistory());
     }
 
     @Operation(summary = "Get parking history by vehicle number")
+    @PreAuthorize("hasAnyRole('ADMIN', 'ATTENDANT')")
     @GetMapping("/vehicle/{vehicleNumber}")
     public ResponseEntity<List<ParkingHistoryResponse>> getHistoryByVehicleNumber(
             @PathVariable
@@ -44,6 +47,7 @@ public class ParkingHistoryController {
     }
 
     @Operation(summary = "Get parking history between dates")
+    @PreAuthorize("hasAnyRole('ADMIN', 'ATTENDANT')")
     @GetMapping("/date-range")
     public ResponseEntity<List<ParkingHistoryResponse>> getHistoryBetweenDates(
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,

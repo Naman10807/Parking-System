@@ -10,6 +10,7 @@ import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -28,6 +29,7 @@ public class ParkingSlotController {
     private final ParkingSlotService parkingSlotService;
 
     @Operation(summary = "Create a parking slot")
+    @PreAuthorize("hasRole('ADMIN')")
     @PostMapping
     public ResponseEntity<ParkingSlotResponse> createSlot(@Valid @RequestBody ParkingSlotRequest request) {
         ParkingSlotResponse response = parkingSlotService.createSlot(request);
@@ -35,18 +37,21 @@ public class ParkingSlotController {
     }
 
     @Operation(summary = "Get all parking slots")
+    @PreAuthorize("hasAnyRole('ADMIN', 'ATTENDANT')")
     @GetMapping
     public ResponseEntity<List<ParkingSlotResponse>> getAllSlots() {
         return ResponseEntity.ok(parkingSlotService.getAllSlots());
     }
 
     @Operation(summary = "Get a parking slot by ID")
+    @PreAuthorize("hasAnyRole('ADMIN', 'ATTENDANT')")
     @GetMapping("/{id}")
     public ResponseEntity<ParkingSlotResponse> getSlotById(@PathVariable Long id) {
         return ResponseEntity.ok(parkingSlotService.getSlotById(id));
     }
 
     @Operation(summary = "Update a parking slot")
+    @PreAuthorize("hasRole('ADMIN')")
     @PutMapping("/{id}")
     public ResponseEntity<ParkingSlotResponse> updateSlot(
             @PathVariable Long id,
@@ -55,6 +60,7 @@ public class ParkingSlotController {
     }
 
     @Operation(summary = "Delete a parking slot")
+    @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteSlot(@PathVariable Long id) {
         parkingSlotService.deleteSlot(id);
