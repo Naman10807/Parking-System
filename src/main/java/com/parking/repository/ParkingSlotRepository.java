@@ -17,4 +17,6 @@ public interface ParkingSlotRepository extends JpaRepository<ParkingSlot, Long> 
             SlotStatus status, String vehicleType);
 
     Optional<ParkingSlot> findFirstByStatusOrderByIdAsc(SlotStatus status);
+
+    long countByStatus(SlotStatus status);
 }
