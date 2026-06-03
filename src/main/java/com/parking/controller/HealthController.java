@@ -1,6 +1,7 @@
 package com.parking.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.security.SecurityRequirements;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import java.time.LocalDateTime;
 import org.springframework.beans.factory.annotation.Value;
@@ -11,6 +12,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api")
+@SecurityRequirements
 @Tag(name = "Health", description = "Application health check")
 public class HealthController {
 
