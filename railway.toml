@@ -1,0 +1,9 @@
+[build]
+builder = "NIXPACKS"
+buildCommand = "mvn -DskipTests clean package"
+
+[deploy]
+startCommand = "java -Dspring.profiles.active=prod -Dserver.port=$PORT -jar target/smart-parking-backend-1.0.0-SNAPSHOT.jar"
+healthcheckPath = "/actuator/health"
+healthcheckTimeout = 300
+restartPolicyType = "ON_FAILURE"

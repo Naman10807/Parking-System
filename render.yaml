@@ -1,0 +1,45 @@
+services:
+  - type: web
+    name: smart-parking-api
+    runtime: native
+    plan: free
+    buildCommand: mvn -DskipTests clean package
+    startCommand: java -Dspring.profiles.active=prod -Dserver.port=$PORT -jar target/smart-parking-backend-1.0.0-SNAPSHOT.jar
+    healthCheckPath: /actuator/health
+    envVars:
+      - key: SPRING_PROFILES_ACTIVE
+        value: prod
+      - key: JWT_SECRET
+        generateValue: true
+      - key: CORS_ALLOWED_ORIGINS
+        sync: false
+      - key: JPA_DDL_AUTO
+        value: update
+      - key: SEED_DEFAULT_USERS
+        value: "true"
+      - key: DB_USERNAME
+        fromDatabase:
+          name: smart-parking-db
+          property: user
+      - key: DB_PASSWORD
+        fromDatabase:
+          name: smart-parking-db
+          property: password
+      - key: DB_HOST
+        fromDatabase:
+          name: smart-parking-db
+          property: host
+      - key: DB_PORT
+        fromDatabase:
+          name: smart-parking-db
+          property: port
+      - key: DB_NAME
+        fromDatabase:
+          name: smart-parking-db
+          property: database
+
+databases:
+  - name: smart-parking-db
+    plan: free
+    databaseName: smart_parking_db
+    user: smart_parking_user

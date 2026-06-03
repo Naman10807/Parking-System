@@ -5,6 +5,7 @@ import com.parking.entity.User;
 import com.parking.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Profile;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -19,8 +20,14 @@ public class DefaultAdminInitializer implements CommandLineRunner {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
 
+    @Value("${app.seed-default-users:false}")
+    private boolean seedDefaultUsers;
+
     @Override
     public void run(String... args) {
+        if (!seedDefaultUsers) {
+            return;
+        }
         if (!userRepository.existsByUsername("admin")) {
             User admin = User.builder()
                     .username("admin")

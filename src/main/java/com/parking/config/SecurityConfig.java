@@ -38,6 +38,11 @@ public class SecurityConfig {
             "/webjars/**"
     };
 
+    private static final String[] ACTUATOR_WHITELIST = {
+            "/actuator/health",
+            "/actuator/info"
+    };
+
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
@@ -49,6 +54,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers("/api/health").permitAll()
+                        .requestMatchers(ACTUATOR_WHITELIST).permitAll()
                         .requestMatchers(SWAGGER_WHITELIST).permitAll()
                         .requestMatchers("/api/dashboard/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.DELETE, "/api/slots/**").hasRole("ADMIN")
