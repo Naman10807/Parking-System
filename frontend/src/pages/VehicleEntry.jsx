@@ -1,11 +1,11 @@
 import { useState } from 'react';
 import { parkingService } from '../api/parkingService';
 import AlertMessage from '../components/AlertMessage';
+import LoadingSpinner from '../components/LoadingSpinner';
 import PageHeader from '../components/PageHeader';
+import { VEHICLE_TYPES } from '../constants/navigation';
 import { getErrorMessage } from '../utils/apiError';
 import { formatDateTime } from '../utils/formatters';
-
-const VEHICLE_TYPES = ['CAR', 'BIKE', 'TRUCK'];
 
 const INITIAL_FORM = {
   vehicleNumber: '',
@@ -59,60 +59,64 @@ export default function VehicleEntry() {
           <div className="card content-card">
             <div className="card-body">
               <h5 className="card-title mb-4">Entry Form</h5>
-              <form onSubmit={handleSubmit}>
-                <div className="mb-3">
-                  <label htmlFor="vehicleNumber" className="form-label">
-                    Vehicle Number
-                  </label>
-                  <input
-                    type="text"
-                    className="form-control"
-                    id="vehicleNumber"
-                    name="vehicleNumber"
-                    value={form.vehicleNumber}
-                    onChange={handleChange}
-                    placeholder="UP32AB1234"
-                    required
-                  />
-                </div>
-                <div className="mb-3">
-                  <label htmlFor="ownerName" className="form-label">
-                    Owner Name
-                  </label>
-                  <input
-                    type="text"
-                    className="form-control"
-                    id="ownerName"
-                    name="ownerName"
-                    value={form.ownerName}
-                    onChange={handleChange}
-                    placeholder="Naman"
-                    required
-                  />
-                </div>
-                <div className="mb-4">
-                  <label htmlFor="vehicleType" className="form-label">
-                    Vehicle Type
-                  </label>
-                  <select
-                    className="form-select"
-                    id="vehicleType"
-                    name="vehicleType"
-                    value={form.vehicleType}
-                    onChange={handleChange}
-                    required
-                  >
-                    {VEHICLE_TYPES.map((type) => (
-                      <option key={type} value={type}>
-                        {type}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                <button type="submit" className="btn btn-primary w-100" disabled={loading}>
-                  {loading ? 'Processing...' : 'Register Entry'}
-                </button>
-              </form>
+              {loading ? (
+                <LoadingSpinner message="Registering entry..." />
+              ) : (
+                <form onSubmit={handleSubmit}>
+                  <div className="mb-3">
+                    <label htmlFor="vehicleNumber" className="form-label">
+                      Vehicle Number
+                    </label>
+                    <input
+                      type="text"
+                      className="form-control"
+                      id="vehicleNumber"
+                      name="vehicleNumber"
+                      value={form.vehicleNumber}
+                      onChange={handleChange}
+                      placeholder="UP32AB1234"
+                      required
+                    />
+                  </div>
+                  <div className="mb-3">
+                    <label htmlFor="ownerName" className="form-label">
+                      Owner Name
+                    </label>
+                    <input
+                      type="text"
+                      className="form-control"
+                      id="ownerName"
+                      name="ownerName"
+                      value={form.ownerName}
+                      onChange={handleChange}
+                      placeholder="Naman"
+                      required
+                    />
+                  </div>
+                  <div className="mb-4">
+                    <label htmlFor="vehicleType" className="form-label">
+                      Vehicle Type
+                    </label>
+                    <select
+                      className="form-select"
+                      id="vehicleType"
+                      name="vehicleType"
+                      value={form.vehicleType}
+                      onChange={handleChange}
+                      required
+                    >
+                      {VEHICLE_TYPES.map((type) => (
+                        <option key={type} value={type}>
+                          {type}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <button type="submit" className="btn btn-primary w-100">
+                    Register Entry
+                  </button>
+                </form>
+              )}
             </div>
           </div>
         </div>

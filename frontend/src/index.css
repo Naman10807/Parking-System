@@ -40,6 +40,44 @@ body {
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 }
 
+.sidebar-user {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.sidebar-footer {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+}
+
+.sidebar {
+  display: flex;
+  flex-direction: column;
+  padding-bottom: 5rem;
+}
+
+.sidebar-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  border: none;
+  z-index: 999;
+}
+
+.login-page {
+  background: linear-gradient(135deg, #0f172a 0%, #1e3a5f 50%, #0d6efd 100%);
+}
+
+.login-card {
+  border-radius: 1rem;
+}
+
+.login-logo {
+  font-size: 3rem;
+  line-height: 1;
+}
+
 .sidebar-nav {
   padding: 1rem 0.75rem;
 }

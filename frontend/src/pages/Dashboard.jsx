@@ -1,6 +1,7 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { dashboardService } from '../api/dashboardService';
 import AlertMessage from '../components/AlertMessage';
+import LoadingSpinner from '../components/LoadingSpinner';
 import PageHeader from '../components/PageHeader';
 import StatCard from '../components/StatCard';
 import { getErrorMessage } from '../utils/apiError';
@@ -11,11 +12,7 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
-  useEffect(() => {
-    loadSummary();
-  }, []);
-
-  const loadSummary = async () => {
+  const loadSummary = useCallback(async () => {
     setLoading(true);
     setError('');
     try {
@@ -26,63 +23,63 @@ export default function Dashboard() {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
-  if (loading) {
-    return (
-      <div className="text-center py-5">
-        <div className="spinner-border text-primary" role="status" />
-        <p className="mt-3 text-muted">Loading dashboard...</p>
-      </div>
-    );
-  }
+  useEffect(() => {
+    loadSummary();
+  }, [loadSummary]);
 
   return (
     <>
       <PageHeader
         title="Dashboard"
-        subtitle="Real-time overview of your parking facility"
+        subtitle="Real-time analytics and revenue overview"
       />
       <AlertMessage message={error} onClose={() => setError('')} />
 
-      {summary && (
-        <div className="row g-4">
-          <div className="col-sm-6 col-xl-4">
-            <StatCard label="Total Slots" value={summary.totalSlots} variant="primary" icon="🅿️" />
-          </div>
-          <div className="col-sm-6 col-xl-4">
-            <StatCard label="Available Slots" value={summary.availableSlots} variant="success" icon="✅" />
-          </div>
-          <div className="col-sm-6 col-xl-4">
-            <StatCard label="Occupied Slots" value={summary.occupiedSlots} variant="danger" icon="🔴" />
-          </div>
-          <div className="col-sm-6 col-xl-4">
-            <StatCard label="Active Vehicles" value={summary.activeVehicles} variant="warning" icon="🚗" />
-          </div>
-          <div className="col-sm-6 col-xl-4">
-            <StatCard
-              label="Total Vehicles Parked"
-              value={summary.totalVehiclesParked}
-              variant="info"
-              icon="📈"
-            />
-          </div>
-          <div className="col-sm-6 col-xl-4">
-            <StatCard
-              label="Total Revenue"
-              value={formatCurrency(summary.totalRevenue)}
-              variant="dark"
-              icon="💰"
-            />
-          </div>
-        </div>
+      {loading ? (
+        <LoadingSpinner message="Loading dashboard metrics..." fullPage />
+      ) : (
+        summary && (
+          <>
+            <div className="row g-4">
+              <div className="col-sm-6 col-xl-4">
+                <StatCard label="Total Slots" value={summary.totalSlots} variant="primary" icon="🅿️" />
+              </div>
+              <div className="col-sm-6 col-xl-4">
+                <StatCard label="Available Slots" value={summary.availableSlots} variant="success" icon="✅" />
+              </div>
+              <div className="col-sm-6 col-xl-4">
+                <StatCard label="Occupied Slots" value={summary.occupiedSlots} variant="danger" icon="🔴" />
+              </div>
+              <div className="col-sm-6 col-xl-4">
+                <StatCard label="Active Vehicles" value={summary.activeVehicles} variant="warning" icon="🚗" />
+              </div>
+              <div className="col-sm-6 col-xl-4">
+                <StatCard
+                  label="Total Vehicles Parked"
+                  value={summary.totalVehiclesParked}
+                  variant="info"
+                  icon="📈"
+                />
+              </div>
+              <div className="col-sm-6 col-xl-4">
+                <StatCard
+                  label="Total Revenue"
+                  value={formatCurrency(summary.totalRevenue)}
+                  variant="dark"
+                  icon="💰"
+                />
+              </div>
+            </div>
+            <div className="mt-4">
+              <button type="button" className="btn btn-outline-primary" onClick={loadSummary}>
+                Refresh Data
+              </button>
+            </div>
+          </>
+        )
       )}
-
-      <div className="mt-4">
-        <button type="button" className="btn btn-outline-primary" onClick={loadSummary}>
-          Refresh
-        </button>
-      </div>
     </>
   );
 }

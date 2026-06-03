@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { parkingService } from '../api/parkingService';
 import AlertMessage from '../components/AlertMessage';
+import LoadingSpinner from '../components/LoadingSpinner';
 import PageHeader from '../components/PageHeader';
 import { getErrorMessage } from '../utils/apiError';
 import { formatCurrency, formatDateTime } from '../utils/formatters';
@@ -44,25 +45,29 @@ export default function VehicleExit() {
           <div className="card content-card">
             <div className="card-body">
               <h5 className="card-title mb-4">Search & Exit</h5>
-              <form onSubmit={handleExit}>
-                <div className="mb-4">
-                  <label htmlFor="vehicleNumber" className="form-label">
-                    Vehicle Number
-                  </label>
-                  <input
-                    type="text"
-                    className="form-control form-control-lg"
-                    id="vehicleNumber"
-                    value={vehicleNumber}
-                    onChange={(e) => setVehicleNumber(e.target.value)}
-                    placeholder="UP32AB1234"
-                    required
-                  />
-                </div>
-                <button type="submit" className="btn btn-danger w-100" disabled={loading}>
-                  {loading ? 'Processing Exit...' : 'Process Exit'}
-                </button>
-              </form>
+              {loading ? (
+                <LoadingSpinner message="Processing exit..." />
+              ) : (
+                <form onSubmit={handleExit}>
+                  <div className="mb-4">
+                    <label htmlFor="vehicleNumber" className="form-label">
+                      Vehicle Number
+                    </label>
+                    <input
+                      type="text"
+                      className="form-control form-control-lg"
+                      id="vehicleNumber"
+                      value={vehicleNumber}
+                      onChange={(e) => setVehicleNumber(e.target.value)}
+                      placeholder="UP32AB1234"
+                      required
+                    />
+                  </div>
+                  <button type="submit" className="btn btn-danger w-100">
+                    Process Exit
+                  </button>
+                </form>
+              )}
             </div>
           </div>
         </div>

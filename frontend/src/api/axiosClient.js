@@ -8,9 +8,27 @@ const axiosClient = axios.create({
   timeout: 15000,
 });
 
+axiosClient.interceptors.request.use((config) => {
+  const token = localStorage.getItem('sp_token');
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+});
+
 axiosClient.interceptors.response.use(
   (response) => response,
-  (error) => Promise.reject(error)
+  (error) => {
+    if (error.response?.status === 401) {
+      localStorage.removeItem('sp_token');
+      localStorage.removeItem('sp_username');
+      localStorage.removeItem('sp_role');
+      if (!window.location.pathname.includes('/login')) {
+        window.location.href = '/login';
+      }
+    }
+    return Promise.reject(error);
+  }
 );
 
 export default axiosClient;
