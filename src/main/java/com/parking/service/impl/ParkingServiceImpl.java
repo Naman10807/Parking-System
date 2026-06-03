@@ -1,10 +1,8 @@
 package com.parking.service.impl;
 
 import com.parking.dto.request.VehicleEntryRequest;
-import com.parking.dto.response.ParkingHistoryResponse;
 import com.parking.dto.response.VehicleEntryResponse;
 import com.parking.dto.response.VehicleExitResponse;
-import java.util.List;
 import com.parking.entity.ParkingRecord;
 import com.parking.entity.ParkingSlot;
 import com.parking.entity.SlotStatus;
@@ -126,28 +124,6 @@ public class ParkingServiceImpl implements ParkingService {
                 .durationInHours(durationInHours)
                 .parkingFee(parkingFee)
                 .message(EXIT_SUCCESS_MESSAGE)
-                .build();
-    }
-
-    @Override
-    public List<ParkingHistoryResponse> getParkingHistory(String search) {
-        String searchTerm = search == null ? "" : search.trim();
-        return parkingRecordRepository.searchParkingHistory(searchTerm).stream()
-                .map(this::toHistoryResponse)
-                .toList();
-    }
-
-    private ParkingHistoryResponse toHistoryResponse(ParkingRecord record) {
-        return ParkingHistoryResponse.builder()
-                .id(record.getId())
-                .vehicleNumber(record.getVehicle().getVehicleNumber())
-                .ownerName(record.getVehicle().getOwnerName())
-                .vehicleType(record.getVehicle().getVehicleType())
-                .slotNumber(record.getParkingSlot().getSlotNumber())
-                .entryTime(record.getEntryTime())
-                .exitTime(record.getExitTime())
-                .parkingFee(record.getParkingFee())
-                .status(record.getExitTime() == null ? "ACTIVE" : "COMPLETED")
                 .build();
     }
 

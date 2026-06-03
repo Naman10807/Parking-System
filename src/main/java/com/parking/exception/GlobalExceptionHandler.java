@@ -54,7 +54,7 @@ public class GlobalExceptionHandler {
         return buildErrorResponse(HttpStatus.NOT_FOUND, ex.getMessage(), request.getRequestURI(), null);
     }
 
-    @ExceptionHandler({InvalidVehicleTypeException.class, IllegalArgumentException.class})
+    @ExceptionHandler({InvalidVehicleTypeException.class, InvalidDateRangeException.class, IllegalArgumentException.class})
     public ResponseEntity<ErrorResponse> handleBadRequest(
             RuntimeException ex,
             HttpServletRequest request) {

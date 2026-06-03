@@ -14,7 +14,7 @@ import lombok.Setter;
 @Builder
 public class ParkingHistoryResponse {
 
-    private Long id;
+    private Long recordId;
     private String vehicleNumber;
     private String ownerName;
     private String vehicleType;
@@ -22,5 +22,4 @@ public class ParkingHistoryResponse {
     private LocalDateTime entryTime;
     private LocalDateTime exitTime;
     private Double parkingFee;
-    private String status;
 }

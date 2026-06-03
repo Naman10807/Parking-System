@@ -1,6 +1,7 @@
 package com.parking.repository;
 
 import com.parking.entity.ParkingRecord;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.EntityGraph;
@@ -23,13 +24,18 @@ public interface ParkingRecordRepository extends JpaRepository<ParkingRecord, Lo
     double sumCompletedParkingFees();
 
     @EntityGraph(attributePaths = {"vehicle", "parkingSlot"})
+    List<ParkingRecord> findAllByOrderByEntryTimeDesc();
+
+    @EntityGraph(attributePaths = {"vehicle", "parkingSlot"})
+    List<ParkingRecord> findByVehicle_VehicleNumberIgnoreCaseOrderByEntryTimeDesc(String vehicleNumber);
+
+    @EntityGraph(attributePaths = {"vehicle", "parkingSlot"})
     @Query("""
             SELECT pr FROM ParkingRecord pr
-            WHERE (:search IS NULL OR :search = ''
-                OR UPPER(pr.vehicle.vehicleNumber) LIKE UPPER(CONCAT('%', :search, '%'))
-                OR UPPER(pr.vehicle.ownerName) LIKE UPPER(CONCAT('%', :search, '%'))
-                OR UPPER(pr.parkingSlot.slotNumber) LIKE UPPER(CONCAT('%', :search, '%')))
+            WHERE pr.entryTime >= :startDateTime AND pr.entryTime < :endDateTime
             ORDER BY pr.entryTime DESC
             """)
-    List<ParkingRecord> searchParkingHistory(@Param("search") String search);
+    List<ParkingRecord> findByEntryTimeBetweenOrderByEntryTimeDesc(
+            @Param("startDateTime") LocalDateTime startDateTime,
+            @Param("endDateTime") LocalDateTime endDateTime);
 }

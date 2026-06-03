@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { parkingService } from '../api/parkingService';
+import { historyService } from '../api/historyService';
 import AlertMessage from '../components/AlertMessage';
 import PageHeader from '../components/PageHeader';
 import StatusBadge from '../components/StatusBadge';
@@ -9,14 +9,16 @@ import { formatCurrency, formatDateTime } from '../utils/formatters';
 export default function ParkingHistory() {
   const [records, setRecords] = useState([]);
   const [search, setSearch] = useState('');
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
-  const loadHistory = async (searchTerm = '') => {
+  const loadAllHistory = async () => {
     setLoading(true);
     setError('');
     try {
-      const { data } = await parkingService.getHistory(searchTerm);
+      const { data } = await historyService.getAll();
       setRecords(data);
     } catch (err) {
       setError(getErrorMessage(err));
@@ -26,18 +28,60 @@ export default function ParkingHistory() {
   };
 
   useEffect(() => {
-    loadHistory('');
+    loadAllHistory();
   }, []);
 
-  const handleSearch = (e) => {
+  const handleSearch = async (e) => {
     e.preventDefault();
-    loadHistory(search);
+    setLoading(true);
+    setError('');
+    setStartDate('');
+    setEndDate('');
+
+    try {
+      if (search.trim()) {
+        const { data } = await historyService.getByVehicle(search.trim().toUpperCase());
+        setRecords(data);
+      } else {
+        await loadAllHistory();
+        return;
+      }
+    } catch (err) {
+      setError(getErrorMessage(err));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDateFilter = async (e) => {
+    e.preventDefault();
+    if (!startDate || !endDate) {
+      setError('Please select both start and end dates');
+      return;
+    }
+
+    setLoading(true);
+    setError('');
+    setSearch('');
+
+    try {
+      const { data } = await historyService.getByDateRange(startDate, endDate);
+      setRecords(data);
+    } catch (err) {
+      setError(getErrorMessage(err));
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleClear = () => {
     setSearch('');
-    loadHistory('');
+    setStartDate('');
+    setEndDate('');
+    loadAllHistory();
   };
+
+  const getRecordStatus = (record) => (record.exitTime ? 'COMPLETED' : 'ACTIVE');
 
   return (
     <>
@@ -46,10 +90,10 @@ export default function ParkingHistory() {
 
       <div className="card content-card mb-4">
         <div className="card-body">
-          <form className="row g-2 align-items-end" onSubmit={handleSearch}>
+          <form className="row g-2 align-items-end mb-3" onSubmit={handleSearch}>
             <div className="col-md-8">
               <label htmlFor="search" className="form-label">
-                Search
+                Search by Vehicle Number
               </label>
               <input
                 type="text"
@@ -57,7 +101,7 @@ export default function ParkingHistory() {
                 id="search"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                placeholder="Vehicle number, owner name, or slot number"
+                placeholder="UP32AB1234"
               />
             </div>
             <div className="col-md-4 d-flex gap-2">
@@ -66,6 +110,38 @@ export default function ParkingHistory() {
               </button>
               <button type="button" className="btn btn-outline-secondary" onClick={handleClear}>
                 Clear
+              </button>
+            </div>
+          </form>
+
+          <form className="row g-2 align-items-end" onSubmit={handleDateFilter}>
+            <div className="col-md-4">
+              <label htmlFor="startDate" className="form-label">
+                Start Date
+              </label>
+              <input
+                type="date"
+                className="form-control"
+                id="startDate"
+                value={startDate}
+                onChange={(e) => setStartDate(e.target.value)}
+              />
+            </div>
+            <div className="col-md-4">
+              <label htmlFor="endDate" className="form-label">
+                End Date
+              </label>
+              <input
+                type="date"
+                className="form-control"
+                id="endDate"
+                value={endDate}
+                onChange={(e) => setEndDate(e.target.value)}
+              />
+            </div>
+            <div className="col-md-4">
+              <button type="submit" className="btn btn-outline-primary w-100">
+                Filter by Date
               </button>
             </div>
           </form>
@@ -85,7 +161,7 @@ export default function ParkingHistory() {
               <table className="table table-hover align-middle mb-0">
                 <thead className="table-light">
                   <tr>
-                    <th>ID</th>
+                    <th>Record ID</th>
                     <th>Vehicle</th>
                     <th>Owner</th>
                     <th>Type</th>
@@ -98,8 +174,8 @@ export default function ParkingHistory() {
                 </thead>
                 <tbody>
                   {records.map((record) => (
-                    <tr key={record.id}>
-                      <td>{record.id}</td>
+                    <tr key={record.recordId}>
+                      <td>{record.recordId}</td>
                       <td className="fw-semibold">{record.vehicleNumber}</td>
                       <td>{record.ownerName}</td>
                       <td>{record.vehicleType}</td>
@@ -108,7 +184,7 @@ export default function ParkingHistory() {
                       <td>{formatDateTime(record.exitTime)}</td>
                       <td>{formatCurrency(record.parkingFee)}</td>
                       <td>
-                        <StatusBadge status={record.status} />
+                        <StatusBadge status={getRecordStatus(record)} />
                       </td>
                     </tr>
                   ))}
