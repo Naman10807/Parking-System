@@ -1,7 +1,7 @@
 services:
   - type: web
     name: smart-parking-api
-    runtime: native
+    runtime: java
     plan: free
     buildCommand: mvn -DskipTests clean package
     startCommand: java -Dspring.profiles.active=prod -Dserver.port=$PORT -jar target/smart-parking-backend-1.0.0-SNAPSHOT.jar
