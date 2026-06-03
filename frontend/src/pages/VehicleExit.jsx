@@ -1,27 +1,26 @@
 import { useState } from 'react';
 import { parkingService } from '../api/parkingService';
-import AlertMessage from '../components/AlertMessage';
 import LoadingSpinner from '../components/LoadingSpinner';
 import PageHeader from '../components/PageHeader';
-import { getErrorMessage } from '../utils/apiError';
+import { useToast } from '../context/ToastContext';
+import { notifyApiError } from '../utils/apiError';
 import { formatCurrency, formatDateTime } from '../utils/formatters';
 
 export default function VehicleExit() {
+  const { showError, showWarning } = useToast();
   const [vehicleNumber, setVehicleNumber] = useState('');
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
   const [receipt, setReceipt] = useState(null);
 
   const handleExit = async (e) => {
     e.preventDefault();
     const normalized = vehicleNumber.trim().toUpperCase();
     if (!normalized) {
-      setError('Please enter a vehicle number');
+      showWarning('Please enter a vehicle number');
       return;
     }
 
     setLoading(true);
-    setError('');
     setReceipt(null);
 
     try {
@@ -29,7 +28,7 @@ export default function VehicleExit() {
       setReceipt(data);
       setVehicleNumber('');
     } catch (err) {
-      setError(getErrorMessage(err));
+      notifyApiError(err, showError);
     } finally {
       setLoading(false);
     }
@@ -38,7 +37,6 @@ export default function VehicleExit() {
   return (
     <>
       <PageHeader title="Vehicle Exit" subtitle="Process exit and generate parking fee receipt" />
-      <AlertMessage message={error} onClose={() => setError('')} />
 
       <div className="row g-4">
         <div className="col-lg-5">

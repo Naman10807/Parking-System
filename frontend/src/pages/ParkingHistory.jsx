@@ -1,23 +1,23 @@
 import { useEffect, useMemo, useState } from 'react';
 import { historyService } from '../api/historyService';
-import AlertMessage from '../components/AlertMessage';
 import LoadingSpinner from '../components/LoadingSpinner';
 import PageHeader from '../components/PageHeader';
 import Pagination from '../components/Pagination';
 import StatusBadge from '../components/StatusBadge';
 import { PAGE_SIZE } from '../constants/navigation';
-import { getErrorMessage } from '../utils/apiError';
+import { useToast } from '../context/ToastContext';
+import { notifyApiError } from '../utils/apiError';
 import { formatCurrency, formatDateTime } from '../utils/formatters';
 import { paginateItems } from '../utils/pagination';
 
 export default function ParkingHistory() {
+  const { showError, showWarning } = useToast();
   const [records, setRecords] = useState([]);
   const [search, setSearch] = useState('');
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
   const [filterMode, setFilterMode] = useState('all');
 
   const pagination = useMemo(
@@ -27,14 +27,13 @@ export default function ParkingHistory() {
 
   const loadAllHistory = async () => {
     setLoading(true);
-    setError('');
     setFilterMode('all');
     try {
       const { data } = await historyService.getAll();
       setRecords(data);
       setCurrentPage(1);
     } catch (err) {
-      setError(getErrorMessage(err));
+      notifyApiError(err, showError);
     } finally {
       setLoading(false);
     }
@@ -52,7 +51,6 @@ export default function ParkingHistory() {
     }
 
     setLoading(true);
-    setError('');
     setFilterMode('vehicle');
     setStartDate('');
     setEndDate('');
@@ -62,7 +60,7 @@ export default function ParkingHistory() {
       setRecords(data);
       setCurrentPage(1);
     } catch (err) {
-      setError(getErrorMessage(err));
+      notifyApiError(err, showError);
     } finally {
       setLoading(false);
     }
@@ -71,12 +69,11 @@ export default function ParkingHistory() {
   const handleDateFilter = async (e) => {
     e.preventDefault();
     if (!startDate || !endDate) {
-      setError('Please select both start and end dates');
+      showWarning('Please select both start and end dates');
       return;
     }
 
     setLoading(true);
-    setError('');
     setFilterMode('date');
     setSearch('');
 
@@ -85,7 +82,7 @@ export default function ParkingHistory() {
       setRecords(data);
       setCurrentPage(1);
     } catch (err) {
-      setError(getErrorMessage(err));
+      notifyApiError(err, showError);
     } finally {
       setLoading(false);
     }
@@ -103,7 +100,6 @@ export default function ParkingHistory() {
   return (
     <>
       <PageHeader title="Parking History" subtitle="Search, filter, and browse parking records" />
-      <AlertMessage message={error} onClose={() => setError('')} />
 
       <div className="card content-card mb-4">
         <div className="card-body">

@@ -1,12 +1,12 @@
 import { useCallback, useEffect, useState } from 'react';
 import { slotService } from '../api/slotService';
-import AlertMessage from '../components/AlertMessage';
 import LoadingSpinner from '../components/LoadingSpinner';
 import PageHeader from '../components/PageHeader';
 import StatusBadge from '../components/StatusBadge';
 import { SLOT_STATUSES, VEHICLE_TYPES } from '../constants/navigation';
 import { useAuth } from '../context/AuthContext';
-import { getErrorMessage } from '../utils/apiError';
+import { useToast } from '../context/ToastContext';
+import { notifyApiError } from '../utils/apiError';
 
 const EMPTY_FORM = {
   slotNumber: '',
@@ -16,27 +16,25 @@ const EMPTY_FORM = {
 
 export default function ParkingSlots() {
   const { isAdmin } = useAuth();
+  const { showError, showSuccess } = useToast();
   const [slots, setSlots] = useState([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [form, setForm] = useState(EMPTY_FORM);
 
   const loadSlots = useCallback(async () => {
     setLoading(true);
-    setError('');
     try {
       const { data } = await slotService.getAll();
       setSlots(data);
     } catch (err) {
-      setError(getErrorMessage(err));
+      notifyApiError(err, showError);
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [showError]);
 
   useEffect(() => {
     loadSlots();
@@ -57,7 +55,6 @@ export default function ParkingSlots() {
     setForm(EMPTY_FORM);
     setEditingId(null);
     setShowForm(true);
-    setSuccess('');
   };
 
   const openEditForm = (slot) => {
@@ -68,27 +65,24 @@ export default function ParkingSlots() {
     });
     setEditingId(slot.id);
     setShowForm(true);
-    setSuccess('');
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSaving(true);
-    setError('');
-    setSuccess('');
 
     try {
       if (editingId) {
         await slotService.update(editingId, form);
-        setSuccess('Parking slot updated successfully');
+        showSuccess('Parking slot updated successfully');
       } else {
         await slotService.create(form);
-        setSuccess('Parking slot created successfully');
+        showSuccess('Parking slot created successfully');
       }
       resetForm();
       await loadSlots();
     } catch (err) {
-      setError(getErrorMessage(err));
+      notifyApiError(err, showError);
     } finally {
       setSaving(false);
     }
@@ -97,14 +91,12 @@ export default function ParkingSlots() {
   const handleDelete = async (id, slotNumber) => {
     if (!window.confirm(`Delete slot ${slotNumber}?`)) return;
 
-    setError('');
-    setSuccess('');
     try {
       await slotService.remove(id);
-      setSuccess(`Slot ${slotNumber} deleted successfully`);
+      showSuccess(`Slot ${slotNumber} deleted successfully`);
       await loadSlots();
     } catch (err) {
-      setError(getErrorMessage(err));
+      notifyApiError(err, showError);
     }
   };
 
@@ -114,9 +106,6 @@ export default function ParkingSlots() {
         title="Parking Slots"
         subtitle={isAdmin ? 'Manage parking slots' : 'View parking slot availability'}
       />
-      <AlertMessage message={error} onClose={() => setError('')} />
-      <AlertMessage type="success" message={success} onClose={() => setSuccess('')} />
-
       <div className="d-flex flex-wrap gap-2 mb-3">
         <button type="button" className="btn btn-outline-primary btn-sm" onClick={loadSlots}>
           Refresh

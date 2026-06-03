@@ -1,17 +1,17 @@
 import { useState } from 'react';
 import { Navigate, useLocation, useNavigate } from 'react-router-dom';
-import AlertMessage from '../components/AlertMessage';
 import LoadingSpinner from '../components/LoadingSpinner';
 import { useAuth } from '../context/AuthContext';
-import { getErrorMessage } from '../utils/apiError';
+import { useToast } from '../context/ToastContext';
+import { notifyApiError } from '../utils/apiError';
 
 export default function Login() {
   const { login, isAuthenticated, role } = useAuth();
+  const { showError } = useToast();
   const navigate = useNavigate();
   const location = useLocation();
   const [form, setForm] = useState({ username: '', password: '' });
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
 
   if (isAuthenticated) {
     const redirectTo = role === 'ADMIN' ? '/' : '/entry';
@@ -26,7 +26,6 @@ export default function Login() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-    setError('');
 
     try {
       const data = await login({
@@ -37,7 +36,7 @@ export default function Login() {
       const from = location.state?.from?.pathname || defaultPath;
       navigate(from, { replace: true });
     } catch (err) {
-      setError(getErrorMessage(err));
+      notifyApiError(err, showError);
     } finally {
       setLoading(false);
     }
@@ -52,8 +51,6 @@ export default function Login() {
             <h2 className="fw-bold mb-1">Smart Parking</h2>
             <p className="text-muted mb-0">Sign in to manage your parking facility</p>
           </div>
-
-          <AlertMessage message={error} onClose={() => setError('')} />
 
           {loading ? (
             <LoadingSpinner message="Signing in..." />

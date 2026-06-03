@@ -1,10 +1,10 @@
 import { useState } from 'react';
 import { parkingService } from '../api/parkingService';
-import AlertMessage from '../components/AlertMessage';
 import LoadingSpinner from '../components/LoadingSpinner';
 import PageHeader from '../components/PageHeader';
 import { VEHICLE_TYPES } from '../constants/navigation';
-import { getErrorMessage } from '../utils/apiError';
+import { useToast } from '../context/ToastContext';
+import { notifyApiError } from '../utils/apiError';
 import { formatDateTime } from '../utils/formatters';
 
 const INITIAL_FORM = {
@@ -14,10 +14,9 @@ const INITIAL_FORM = {
 };
 
 export default function VehicleEntry() {
+  const { showError, showSuccess } = useToast();
   const [form, setForm] = useState(INITIAL_FORM);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
   const [result, setResult] = useState(null);
 
   const handleChange = (e) => {
@@ -28,8 +27,6 @@ export default function VehicleEntry() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-    setError('');
-    setSuccess('');
     setResult(null);
 
     try {
@@ -39,10 +36,10 @@ export default function VehicleEntry() {
         vehicleType: form.vehicleType,
       });
       setResult(data);
-      setSuccess(data.message || 'Vehicle entered successfully');
+      showSuccess(data.message || 'Vehicle entered successfully');
       setForm(INITIAL_FORM);
     } catch (err) {
-      setError(getErrorMessage(err));
+      notifyApiError(err, showError);
     } finally {
       setLoading(false);
     }
@@ -51,8 +48,6 @@ export default function VehicleEntry() {
   return (
     <>
       <PageHeader title="Vehicle Entry" subtitle="Register a new vehicle into the parking system" />
-      <AlertMessage message={error} onClose={() => setError('')} />
-      <AlertMessage type="success" message={success} onClose={() => setSuccess('')} />
 
       <div className="row g-4">
         <div className="col-lg-6">
