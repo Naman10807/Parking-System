@@ -32,6 +32,20 @@ public class GlobalExceptionHandler {
         return buildErrorResponse(HttpStatus.CONFLICT, ex.getMessage(), request.getRequestURI(), null);
     }
 
+    @ExceptionHandler(NoAvailableSlotException.class)
+    public ResponseEntity<ErrorResponse> handleNoAvailableSlot(
+            NoAvailableSlotException ex,
+            HttpServletRequest request) {
+        return buildErrorResponse(HttpStatus.CONFLICT, ex.getMessage(), request.getRequestURI(), null);
+    }
+
+    @ExceptionHandler(VehicleAlreadyParkedException.class)
+    public ResponseEntity<ErrorResponse> handleVehicleAlreadyParked(
+            VehicleAlreadyParkedException ex,
+            HttpServletRequest request) {
+        return buildErrorResponse(HttpStatus.CONFLICT, ex.getMessage(), request.getRequestURI(), null);
+    }
+
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ErrorResponse> handleValidationErrors(
             MethodArgumentNotValidException ex,
