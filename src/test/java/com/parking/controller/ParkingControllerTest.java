@@ -112,4 +112,35 @@ class ParkingControllerTest {
                 .andExpect(status().isConflict())
                 .andExpect(jsonPath("$.message", is("Vehicle with number 'UP32AB1234' is already parked")));
     }
+
+    @Test
+    void shouldProcessVehicleExitSuccessfully() throws Exception {
+        ParkingSlotRequest slotRequest = new ParkingSlotRequest("A1", "CAR", SlotStatus.AVAILABLE);
+        mockMvc.perform(post("/api/slots")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(slotRequest)));
+
+        VehicleEntryRequest entryRequest = new VehicleEntryRequest("UP32AB1234", "Naman", "CAR");
+        mockMvc.perform(post("/api/parking/entry")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(entryRequest)));
+
+        mockMvc.perform(post("/api/parking/exit/UP32AB1234"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.vehicleNumber").value("UP32AB1234"))
+                .andExpect(jsonPath("$.slotNumber").value("A1"))
+                .andExpect(jsonPath("$.entryTime").exists())
+                .andExpect(jsonPath("$.exitTime").exists())
+                .andExpect(jsonPath("$.durationInHours").value(1))
+                .andExpect(jsonPath("$.parkingFee").value(20.0))
+                .andExpect(jsonPath("$.message").value("Vehicle exited successfully"));
+    }
+
+    @Test
+    void shouldReturnNotFoundWhenVehicleNotParked() throws Exception {
+        mockMvc.perform(post("/api/parking/exit/UP32AB1234"))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.message")
+                        .value("No active parking record found for vehicle: UP32AB1234"));
+    }
 }

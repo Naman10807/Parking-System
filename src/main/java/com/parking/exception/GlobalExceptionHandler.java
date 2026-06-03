@@ -13,6 +13,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
+import jakarta.validation.ConstraintViolationException;
 
 @Hidden
 @RestControllerAdvice(basePackages = "com.parking.controller")
@@ -44,6 +45,38 @@ public class GlobalExceptionHandler {
             VehicleAlreadyParkedException ex,
             HttpServletRequest request) {
         return buildErrorResponse(HttpStatus.CONFLICT, ex.getMessage(), request.getRequestURI(), null);
+    }
+
+    @ExceptionHandler(ActiveParkingRecordNotFoundException.class)
+    public ResponseEntity<ErrorResponse> handleActiveParkingRecordNotFound(
+            ActiveParkingRecordNotFoundException ex,
+            HttpServletRequest request) {
+        return buildErrorResponse(HttpStatus.NOT_FOUND, ex.getMessage(), request.getRequestURI(), null);
+    }
+
+    @ExceptionHandler({InvalidVehicleTypeException.class, IllegalArgumentException.class})
+    public ResponseEntity<ErrorResponse> handleBadRequest(
+            RuntimeException ex,
+            HttpServletRequest request) {
+        return buildErrorResponse(HttpStatus.BAD_REQUEST, ex.getMessage(), request.getRequestURI(), null);
+    }
+
+    @ExceptionHandler(ConstraintViolationException.class)
+    public ResponseEntity<ErrorResponse> handleConstraintViolation(
+            ConstraintViolationException ex,
+            HttpServletRequest request) {
+        List<ErrorResponse.FieldErrorDetail> fieldErrors = ex.getConstraintViolations().stream()
+                .map(violation -> ErrorResponse.FieldErrorDetail.builder()
+                        .field(violation.getPropertyPath().toString())
+                        .message(violation.getMessage())
+                        .build())
+                .toList();
+
+        return buildErrorResponse(
+                HttpStatus.BAD_REQUEST,
+                "Validation failed",
+                request.getRequestURI(),
+                fieldErrors);
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)

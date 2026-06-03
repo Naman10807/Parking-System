@@ -2,12 +2,15 @@ package com.parking.service.impl;
 
 import com.parking.dto.request.VehicleEntryRequest;
 import com.parking.dto.response.VehicleEntryResponse;
+import com.parking.dto.response.VehicleExitResponse;
 import com.parking.entity.ParkingRecord;
 import com.parking.entity.ParkingSlot;
 import com.parking.entity.SlotStatus;
 import com.parking.entity.Vehicle;
+import com.parking.exception.ActiveParkingRecordNotFoundException;
 import com.parking.exception.NoAvailableSlotException;
 import com.parking.exception.VehicleAlreadyParkedException;
+import com.parking.util.ParkingFeeCalculator;
 import com.parking.repository.ParkingRecordRepository;
 import com.parking.repository.ParkingSlotRepository;
 import com.parking.repository.VehicleRepository;
@@ -23,6 +26,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class ParkingServiceImpl implements ParkingService {
 
     private static final String ENTRY_SUCCESS_MESSAGE = "Vehicle entered successfully";
+    private static final String EXIT_SUCCESS_MESSAGE = "Vehicle exited successfully";
 
     private final ParkingSlotRepository parkingSlotRepository;
     private final VehicleRepository vehicleRepository;
@@ -86,5 +90,47 @@ public class ParkingServiceImpl implements ParkingService {
         vehicle.setOwnerName(ownerName);
         vehicle.setVehicleType(vehicleType);
         return vehicleRepository.save(vehicle);
+    }
+
+    @Override
+    @Transactional
+    public VehicleExitResponse processVehicleExit(String vehicleNumber) {
+        String normalizedVehicleNumber = normalizeVehicleNumber(vehicleNumber);
+
+        ParkingRecord activeRecord = parkingRecordRepository
+                .findByVehicleVehicleNumberAndExitTimeIsNull(normalizedVehicleNumber)
+                .orElseThrow(() -> new ActiveParkingRecordNotFoundException(
+                        "No active parking record found for vehicle: " + normalizedVehicleNumber));
+
+        LocalDateTime exitTime = LocalDateTime.now();
+        long durationInHours = ParkingFeeCalculator.calculateDurationInHours(
+                activeRecord.getEntryTime(), exitTime);
+        double parkingFee = ParkingFeeCalculator.calculateParkingFee(
+                activeRecord.getVehicle().getVehicleType(), durationInHours);
+
+        activeRecord.setExitTime(exitTime);
+        activeRecord.setParkingFee(parkingFee);
+        parkingRecordRepository.save(activeRecord);
+
+        ParkingSlot parkingSlot = activeRecord.getParkingSlot();
+        parkingSlot.setStatus(SlotStatus.AVAILABLE);
+        parkingSlotRepository.save(parkingSlot);
+
+        return VehicleExitResponse.builder()
+                .vehicleNumber(activeRecord.getVehicle().getVehicleNumber())
+                .slotNumber(parkingSlot.getSlotNumber())
+                .entryTime(activeRecord.getEntryTime())
+                .exitTime(exitTime)
+                .durationInHours(durationInHours)
+                .parkingFee(parkingFee)
+                .message(EXIT_SUCCESS_MESSAGE)
+                .build();
+    }
+
+    private String normalizeVehicleNumber(String vehicleNumber) {
+        if (vehicleNumber == null || vehicleNumber.trim().isEmpty()) {
+            throw new IllegalArgumentException("Vehicle number is required");
+        }
+        return vehicleNumber.trim().toUpperCase();
     }
 }
